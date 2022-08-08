@@ -1,0 +1,20 @@
+{
+    "dev": {
+        "app_function": "app.app",
+        "aws_region": "us-east-1",
+        "profile_name": "default",
+        "project_name": "lea-record-shop",
+        "runtime": "python3.9",
+        "s3_bucket": "dev-zappa-ht65373k5",
+        "lambda_description": "Flask Application deployed using Zappa",
+        "apigateway_description": "Serverless API endpoints using Zappa",
+        "cors": true,
+        "timeout_seconds": 300,
+        "environment_variables": {
+            "db_endpoint": "lea-record-shop.czsi41evitwk.us-east-1.rds.amazonaws.com",
+            "db_user_name": "root",
+            "db_password": "123",
+            "db_name": "record_shop"
+        }
+    }
+}

@@ -1,0 +1,6 @@
+flake8
+pre-commit
+black
+isort
+pytest
+pytest-dotenv
