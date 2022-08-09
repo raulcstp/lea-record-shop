@@ -13,12 +13,12 @@ def get_disks():
         "artist": request.args.get("artist"),
     }
     filters = {key: value for key, value in filters.items() if value}
-    
+
     if filters:
         filters = create_filters(model=Disks, filters=filters)
-        disks = Disks.query.filter(*filters, Disks.visibility_date < datetime.now()).all()
+        disks = Disks.query.filter(*filters, Disks.visibility_date <= datetime.now()).all()
     else:
-        disks = Disks.query.filter(Disks.visibility_date < datetime.now()).all()
+        disks = Disks.query.filter(Disks.visibility_date <= datetime.now()).all()
 
     if disks:
         result = disks_schema.dump(disks)
@@ -37,18 +37,21 @@ def get_disk(id):
 
 
 def post_disk():
-    name = request.json.get("name")
-    genre = "rock"
-    release_year = "2020"
-    artist = "test"
-    quantity = 1
-    visibility_date = ""
+    try:
+        name = request.json["name"]
+        genre = request.json["genre"]
+        release_year = request.json["release_year"]
+        artist = request.json["artist"]
+        quantity = request.json["quantity"]
+        visibility_date = request.json["visibility_date"]
+    except KeyError as error:
+        return jsonify({"message": f"missing field {str(error)}"}), 400
 
     disk = disk_by_name(name)
     if disk:
         result = disk_schema.dump(disk)
-        return jsonify({"message": "disk already exists", "data": {}})
-
+        return jsonify({"message": "disk already exists", "data": result})
+        
     disk = Disks(
         name=name,
         genre=genre,

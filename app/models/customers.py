@@ -1,5 +1,6 @@
 import datetime
 from app import db, ma
+from marshmallow import Schema, fields
 
 
 class Customers(db.Model):
@@ -9,8 +10,8 @@ class Customers(db.Model):
     password = db.Column(db.String(200), nullable=False)
     birth_date = db.Column(db.String(20), nullable=False)
     name = db.Column(db.String(60), nullable=False)
-    email = db.Column(db.String(50))
-    phone = db.Column(db.String(50))
+    email = db.Column(db.String(50), nullable=False)
+    phone = db.Column(db.String(50), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.datetime.now())
     updated_at = db.Column(
@@ -27,21 +28,19 @@ class Customers(db.Model):
         self.phone = phone
 
 
-class CustomersSchema(ma.Schema):
-    class Meta:
-        fields = (
-            "id",
-            "document",
-            "birth_date",
-            "phone",
-            "username",
-            "name",
-            "email",
-            "password",
-            "created_at",
-            "updated_at",
-        )
+class CustomersSchema(Schema):
+    id = fields.Int()
+    document = fields.Str(required=True)
+    birth_date = fields.Str(required=True)
+    username = fields.Str(required=True)
+    name = fields.Str(required=True)
+    email = fields.Email(required=True)
+    phone = fields.Str(required=True)
+    password = fields.Str(required=True)
+    created_at = fields.DateTime()
+    updated_at = fields.DateTime()
 
 
 customer_schema = CustomersSchema()
+customer_filter_schema = CustomersSchema(exclude=("id", "created_at", "updated_at", "password"), partial=True)
 customers_schema = CustomersSchema(many=True)
