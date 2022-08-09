@@ -16,7 +16,10 @@ def token_required(f):
             data = jwt.decode(token, app.config["SECRET_KEY"])
             current_user = customer_by_username(username=data["username"])
             if not current_user.is_active:
-                raise Exception("User is inactive")
+                return (
+                    jsonify({"message": "This user is inactive", "data": []}),
+                    401,
+                )
         except Exception:
             return (
                 jsonify({"message": "token is invalid or expired", "data": []}),

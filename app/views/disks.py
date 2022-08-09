@@ -1,22 +1,22 @@
+import json
 from datetime import datetime
 from app import db
 from flask import request, jsonify
-from app.models.disks import Disks, disk_schema, disks_schema
-from app.utils.sql import create_filters
+from app.models.disks import Disks, disk_schema, disk_filter_schema, disks_schema
+from app.utils.sql import create_like_filters
 
 
 def get_disks():
-    filters = {
-        "name": request.args.get("name"),
-        "genre": request.args.get("genre"),
-        "release_year": request.args.get("release_year"),
-        "artist": request.args.get("artist"),
-    }
-    filters = {key: value for key, value in filters.items() if value}
+    filters_json = json.loads(json.dumps(request.args))
+    errors = disk_filter_schema.validate(filters_json)
 
+    if errors:
+        return jsonify({"message": "Invalid request", "data": errors}), 400
+
+    filters = disk_filter_schema.load(json.loads(json.dumps(request.args)))
     if filters:
-        filters = create_filters(model=Disks, filters=filters)
-        disks = Disks.query.filter(*filters, Disks.visibility_date <= datetime.now()).all()
+        filters = create_like_filters(model=Disks, filters=filters)
+        disks = Disks.query.filter(*filters).all()
     else:
         disks = Disks.query.filter(Disks.visibility_date <= datetime.now()).all()
 
@@ -37,29 +37,20 @@ def get_disk(id):
 
 
 def post_disk():
-    try:
-        name = request.json["name"]
-        genre = request.json["genre"]
-        release_year = request.json["release_year"]
-        artist = request.json["artist"]
-        quantity = request.json["quantity"]
-        visibility_date = request.json["visibility_date"]
-    except KeyError as error:
-        return jsonify({"message": f"missing field {str(error)}"}), 400
+    errors = disk_schema.validate(request.json, partial=False)
 
-    disk = disk_by_name(name)
+    if errors:
+        return jsonify({"message": "missing fields", "data": errors}), 400
+
+    disk_data = disk_schema.load(request.json)
+
+    disk = disk_by_name(disk_data.get("name"))
+
     if disk:
         result = disk_schema.dump(disk)
         return jsonify({"message": "disk already exists", "data": result})
-        
-    disk = Disks(
-        name=name,
-        genre=genre,
-        release_year=release_year,
-        artist=artist,
-        quantity=quantity,
-        visibility_date=visibility_date
-    )
+
+    disk = Disks(**disk_data)
 
     try:
         db.session.add(disk)
@@ -71,19 +62,29 @@ def post_disk():
 
 
 def update_disk(id):
-    name = request.json["name"]
-    disk = Disks.query.get(id)
+    errors = disk_schema.validate(request.json, partial=True)
 
-    if not disk:
-        return jsonify({"message": "disk doesn't exist", "data": {}}), 404
+    if errors:
+        return jsonify({"message": "missing fields", "data": errors}), 400
 
-    try:
-        disk.name = name
-        db.session.commit()
-        result = disk_schema.dump(disk)
-        return jsonify({"message": "successfully updated", "data": result}), 201
-    except Exception:
-        return jsonify({"message": "unable to update", "data": {}}), 500
+    disk_data = disk_schema.load(request.json, partial=True)
+    
+    if disk_data:
+        disk = Disks.query.get(id)
+
+        if not disk:
+            return jsonify({"message": "disk doesn't exist", "data": {}}), 404
+
+        try:
+            for attribute, value in disk_data.items():
+                setattr(disk, attribute, value)
+            db.session.commit()
+            result = disk_schema.dump(disk)
+            return jsonify({"message": "successfully updated", "data": result}), 201
+        except Exception:
+            return jsonify({"message": "unable to update", "data": {}}), 500
+    
+    return jsonify({"message": "no data to update", "data": {}}), 200
 
 
 def delete_disk(id):
