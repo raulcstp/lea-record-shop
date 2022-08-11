@@ -14,7 +14,7 @@ def get_customers():
         "phone": request.args.get("phone"),
         "username": request.args.get("username"),
     }
-    filters = {key:value for key,value in filters.items() if value}
+    filters = {key: value for key, value in filters.items() if value}
     if filters:
         filters = create_filters(model=Customers, filters=filters)
         customers = Customers.query.filter(*filters).all()

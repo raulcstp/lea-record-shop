@@ -13,10 +13,12 @@ def get_disks():
         "artist": request.args.get("artist"),
     }
     filters = {key: value for key, value in filters.items() if value}
-    
+
     if filters:
         filters = create_filters(model=Disks, filters=filters)
-        disks = Disks.query.filter(*filters, Disks.visibility_date < datetime.now()).all()
+        disks = Disks.query.filter(
+            *filters, Disks.visibility_date < datetime.now()
+        ).all()
     else:
         disks = Disks.query.filter(Disks.visibility_date < datetime.now()).all()
 
@@ -55,7 +57,7 @@ def post_disk():
         release_year=release_year,
         artist=artist,
         quantity=quantity,
-        visibility_date=visibility_date
+        visibility_date=visibility_date,
     )
 
     try:
