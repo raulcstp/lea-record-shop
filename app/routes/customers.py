@@ -1,5 +1,5 @@
 from app import app
-from ..views import customers
+from app.views import customers
 
 
 @app.route("/v1/customers", methods=["GET"])
