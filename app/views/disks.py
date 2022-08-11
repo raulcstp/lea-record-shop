@@ -88,17 +88,13 @@ def update_disk(id):
 
 
 def delete_disk(id):
-    disk = Disks.query.get(id)
+    disk = Disks.query.filter_by(id=id).delete()
     if not disk:
-        return jsonify({"message": "disk don't exist", "data": {}}), 404
+        return jsonify({"message": "disk doesn't exist", "data": {}}), 404
 
-    try:
-        db.session.delete(id)
-        db.session.commit()
-        result = disk_schema.dump(disk)
-        return jsonify({"message": "successfully deleted", "data": result}), 200
-    except Exception:
-        return jsonify({"message": "unable to delete", "data": {}}), 500
+    db.session.commit()
+    result = disk_schema.dump(disk)
+    return jsonify({"message": "successfully deleted", "data": result}), 200
 
 
 def disk_by_name(name):

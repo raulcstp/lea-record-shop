@@ -47,6 +47,6 @@ class CustomersSchema(Schema):
 
 customer_schema = CustomersSchema()
 customer_filter_schema = CustomersSchema(
-    exclude=("id", "created_at", "updated_at", "password", "is_active"), partial=True
+    exclude=("id", "created_at", "updated_at", "password", "is_active", "birth_date"), partial=True
 )
 customers_schema = CustomersSchema(many=True)
