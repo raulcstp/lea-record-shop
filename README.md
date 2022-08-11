@@ -23,3 +23,6 @@ Apesar da aplicação ser simples, ela precisa lidar com um volume grande de usu
     - Nas tabelas onde os dados não são inseridos de forma constante como a tabela de Customers/Disks foram criados indexes para os campos mais utilizados para pesquisa.
 - SQLAlchemy
     - Com o SQLAlchemy temos todo o poder dos bancos relacionais, sem precisar se prender a um provedor só, com ele é possível realizar todo o mapeamento/modelagem das tabelas e utilizar as mesmas em qualquer banco de dados e de forma muito facilitada.
+- Locust
+    - O Locust é uma ferramente de testes poderosa que permite ao usuário criar uma massa de testes e configurá-los de forma com que simulem um usuário real utilizando a aplicação.
+
