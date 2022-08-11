@@ -1,12 +1,10 @@
 from flask import Flask
-from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 
 
 app = Flask(__name__)
 app.config.from_object("config")
 db = SQLAlchemy(app)
-ma = Marshmallow(app)
 
 
 @app.before_first_request
@@ -15,5 +13,5 @@ def before_first_request():
 
 
 from .models import customers, disks, orders
-from .views import customers, helper, disks
-from .routes import customers, disks, home, auth
+from .views import customers, helper, disks, orders
+from .routes import customers, disks, home, auth, orders

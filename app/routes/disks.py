@@ -1,5 +1,5 @@
 from app import app
-from ..views import disks
+from app.views import disks
 
 
 @app.route("/v1/disks", methods=["GET"])

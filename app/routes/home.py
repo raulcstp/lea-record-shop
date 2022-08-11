@@ -1,6 +1,6 @@
 from app import app
 from flask import jsonify
-from ..views import helper
+from app.views import helper
 
 
 @app.route("/v1", methods=["GET"])
