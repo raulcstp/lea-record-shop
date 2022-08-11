@@ -16,4 +16,3 @@ def get_order(id):
 @helper.token_required
 def post_orders(current_customer):
     return orders.post_order(customer_id=current_customer.id)
-

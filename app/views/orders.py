@@ -1,6 +1,6 @@
 import json
-
 from app import db
+from sqlalchemy.sql import func
 from flask import request, jsonify
 from app.models.orders import (
     Orders,
@@ -8,8 +8,7 @@ from app.models.orders import (
     order_filter_schema,
     orders_schema,
 )
-from app.utils.sql import create_like_filters
-
+from app.models.disks import Disks
 
 
 def get_orders():
@@ -19,12 +18,22 @@ def get_orders():
     if errors:
         return jsonify({"message": "Invalid request", "data": errors}), 400
 
-    filters = order_filter_schema.load(json.loads(json.dumps(request.args)))
+    filters = order_filter_schema.load(filters_json)
     if filters:
-        filters = create_like_filters(model=Orders, filters=filters)
+        customer_id = filters.get("customer_id")
+        from_date = filters.get("from_date")
+        to_date = filters.get("to_date")
+        filters = [
+            Orders.customer_id == customer_id if customer_id else None,
+            Orders.created_at.between(from_date, to_date)
+            if from_date and to_date
+            else None,
+        ]
+        filters = list(filter(lambda item: item is not None, filters))
         orders = Orders.query.filter(*filters).all()
     else:
         orders = Orders.query.all()
+
     if orders:
         result = orders_schema.dump(orders)
         return jsonify({"message": "successfully fetched", "data": result})
@@ -40,19 +49,45 @@ def get_order(id):
 
     return jsonify({"message": "order doesn't exist", "data": {}}), 404
 
+
 def post_order(customer_id):
     errors = order_schema.validate(request.json, partial=False)
-
     if errors:
-        return jsonify({"message": "missing fields", "data": errors}), 400
+        return jsonify({"message": "error validating fields", "data": errors}), 400
 
+    request.json["customer_id"] = customer_id
     order_data = order_schema.load(request.json)
+    disk_data = Disks.query.filter(
+        Disks.id == order_data.get("disk_id"),
+    ).first()
+    if not disk_data:
+        return jsonify({"message": "disk not found", "data": {}}), 404
 
-    order = order_by_username(request.json.get("username"))
+    orders_amount = (
+        Orders.query.with_entities(func.sum(Orders.amount))
+        .filter(Orders.disk_id == order_data.get("disk_id"))
+        .one()[0]
+    )
 
-    if order:
-        result = order_schema.dump(order)
-        return jsonify({"message": "A costumer with this username already exists", "data": {}})
+    disk_amount_left = (
+        disk_data.amount if not orders_amount else disk_data.amount - orders_amount
+    )
+
+    if not disk_amount_left:
+        return (
+            jsonify({"message": f"there are no more disks avaiable", "data": {}}),
+            200,
+        )
+    elif order_data.get("amount") > disk_amount_left:
+        return (
+            jsonify(
+                {
+                    "message": f"there are only {disk_amount_left} disks avaiable",
+                    "data": {},
+                }
+            ),
+            200,
+        )
 
     order = Orders(**order_data)
 
@@ -60,9 +95,12 @@ def post_order(customer_id):
         db.session.add(order)
         db.session.commit()
         result = order_schema.dump(order)
-        return jsonify({"message": "successfully registered", "data": result}), 201
-    except Exception as err:
-        return jsonify({"message": "unable to create", "data": {}}), 500
+        return (
+            jsonify({"message": "successfully created order", "data": result}),
+            201,
+        )
+    except Exception:
+        return jsonify({"message": "unable to create order", "data": {}}), 500
 
 
 def order_by_username(username):

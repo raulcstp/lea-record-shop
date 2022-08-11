@@ -13,7 +13,7 @@ def get_disks():
     if errors:
         return jsonify({"message": "Invalid request", "data": errors}), 400
 
-    filters = disk_filter_schema.load(json.loads(json.dumps(request.args)))
+    filters = disk_filter_schema.load(filters_json)
     if filters:
         filters = create_like_filters(model=Disks, filters=filters)
         disks = Disks.query.filter(*filters).all()
@@ -40,7 +40,7 @@ def post_disk():
     errors = disk_schema.validate(request.json, partial=False)
 
     if errors:
-        return jsonify({"message": "missing fields", "data": errors}), 400
+        return jsonify({"message": "error validating fields", "data": errors}), 400
 
     disk_data = disk_schema.load(request.json)
 
@@ -65,10 +65,10 @@ def update_disk(id):
     errors = disk_schema.validate(request.json, partial=True)
 
     if errors:
-        return jsonify({"message": "missing fields", "data": errors}), 400
+        return jsonify({"message": "error validating fields", "data": errors}), 400
 
     disk_data = disk_schema.load(request.json, partial=True)
-    
+
     if disk_data:
         disk = Disks.query.get(id)
 
@@ -83,7 +83,7 @@ def update_disk(id):
             return jsonify({"message": "successfully updated", "data": result}), 201
         except Exception:
             return jsonify({"message": "unable to update", "data": {}}), 500
-    
+
     return jsonify({"message": "no data to update", "data": {}}), 200
 
 

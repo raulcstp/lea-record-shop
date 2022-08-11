@@ -13,7 +13,7 @@
         "environment_variables": {
             "db_endpoint": "lea-record-shop.czsi41evitwk.us-east-1.rds.amazonaws.com",
             "db_user_name": "root",
-            "db_password": "123",
+            "db_password": "Googledocs1!2",
             "db_name": "record_shop"
         }
     }

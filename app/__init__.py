@@ -13,5 +13,5 @@ def before_first_request():
 
 
 from .models import customers, disks, orders
-from .views import customers, helper, disks
-from .routes import customers, disks, home, auth
+from .views import customers, helper, disks, orders
+from .routes import customers, disks, home, auth, orders
