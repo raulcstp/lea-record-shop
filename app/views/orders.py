@@ -89,6 +89,7 @@ def post_order(customer_id):
             200,
         )
 
+    order_data.update({"disk_amount_left": disk_amount_left})
     order = Orders(**order_data)
 
     try:
@@ -99,8 +100,8 @@ def post_order(customer_id):
             jsonify({"message": "successfully created order", "data": result}),
             201,
         )
-    except Exception:
-        return jsonify({"message": "unable to create order", "data": {}}), 500
+    except Exception as err:
+        return jsonify({"message": "unable to create order", "data": {}}), 409
 
 
 def order_by_username(username):
