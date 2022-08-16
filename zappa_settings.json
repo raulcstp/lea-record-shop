@@ -2,7 +2,7 @@
     "dev": {
         "app_function": "app.app",
         "aws_region": "us-east-1",
-        "profile_name": "default",
+        "profile_name": "zappa",
         "project_name": "lea-record-shop",
         "runtime": "python3.9",
         "s3_bucket": "dev-zappa-ht65373k5",

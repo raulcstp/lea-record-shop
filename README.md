@@ -43,6 +43,15 @@ Agora é só executar o comando e um servidor de testes será iniciado:
 
     flask run
 
+Para executar os testes bastar utilizar o comando:
+
+    locust -f tests/stress_test.py
+
+Com isso ele irá iniciar um servidor local com o locust, geralmente com o endereço:
+
+    http://0.0.0.0:8089
+
+Ao acessar a página basta escolher o número de usuários e a spawn rate dos mesmos.
 
 ## 🎲 AWS
 

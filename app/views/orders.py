@@ -1,4 +1,5 @@
 import json
+import asyncio
 from app import db
 from sqlalchemy.sql import func
 from flask import request, jsonify
@@ -50,24 +51,26 @@ def get_order(id):
     return jsonify({"message": "order doesn't exist", "data": {}}), 404
 
 
-def post_order(customer_id):
+async def post_order(customer_id):
     errors = order_schema.validate(request.json, partial=False)
     if errors:
         return jsonify({"message": "error validating fields", "data": errors}), 400
 
     request.json["customer_id"] = customer_id
     order_data = order_schema.load(request.json)
-    disk_data = Disks.query.filter(
-        Disks.id == order_data.get("disk_id"),
-    ).first()
+
+    tasks = (
+        asyncio.create_task(
+            get_disk_data(disk_id=order_data.get("disk_id"))
+        ),
+        asyncio.create_task(get_orders_amount(
+            disk_id=order_data.get("disk_id")))
+    )
+
+    disk_data, orders_amount = await asyncio.gather(*tasks)
+
     if not disk_data:
         return jsonify({"message": "disk not found", "data": {}}), 404
-
-    orders_amount = (
-        Orders.query.with_entities(func.sum(Orders.amount))
-        .filter(Orders.disk_id == order_data.get("disk_id"))
-        .one()[0]
-    )
 
     disk_amount_left = (
         disk_data.amount if not orders_amount else disk_data.amount - orders_amount
@@ -109,3 +112,13 @@ def order_by_username(username):
         return Orders.query.filter(Orders.username == username).one()
     except:
         return None
+
+
+async def get_disk_data(disk_id):
+    return Disks.query.filter(
+        Disks.id == disk_id,
+    ).first()
+
+
+async def get_orders_amount(disk_id):
+    return Orders.query.with_entities(func.sum(Orders.amount)).filter(Orders.disk_id == disk_id).one()[0]

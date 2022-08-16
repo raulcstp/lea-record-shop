@@ -13,6 +13,6 @@ def get_order(id):
 
 
 @app.route("/v1/orders", methods=["POST"])
-@helper.token_required
-def post_orders(current_customer):
-    return orders.post_order(customer_id=current_customer.id)
+@helper.async_token_required
+async def post_orders(current_customer):
+    return await orders.post_order(customer_id=current_customer.id)
