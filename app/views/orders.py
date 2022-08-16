@@ -1,5 +1,4 @@
 import json
-import asyncio
 from app import db
 from sqlalchemy.sql import func
 from flask import request, jsonify
@@ -51,7 +50,7 @@ def get_order(id):
     return jsonify({"message": "order doesn't exist", "data": {}}), 404
 
 
-async def post_order(customer_id):
+def post_order(customer_id, retries=0):
     errors = order_schema.validate(request.json, partial=False)
     if errors:
         return jsonify({"message": "error validating fields", "data": errors}), 400
@@ -59,15 +58,9 @@ async def post_order(customer_id):
     request.json["customer_id"] = customer_id
     order_data = order_schema.load(request.json)
 
-    tasks = (
-        asyncio.create_task(
-            get_disk_data(disk_id=order_data.get("disk_id"))
-        ),
-        asyncio.create_task(get_orders_amount(
-            disk_id=order_data.get("disk_id")))
-    )
-
-    disk_data, orders_amount = await asyncio.gather(*tasks)
+    disk_id = order_data.get("disk_id")
+    disk_data = get_disk_data(disk_id=disk_id)
+    orders_amount = get_orders_amount(disk_id=disk_id)
 
     if not disk_data:
         return jsonify({"message": "disk not found", "data": {}}), 404
@@ -78,7 +71,7 @@ async def post_order(customer_id):
 
     if not disk_amount_left:
         return (
-            jsonify({"message": f"there are no more disks avaiable", "data": {}}),
+            jsonify({"message": "there are no more disks avaiable", "data": {}}),
             200,
         )
     elif order_data.get("amount") > disk_amount_left:
@@ -103,22 +96,33 @@ async def post_order(customer_id):
             jsonify({"message": "successfully created order", "data": result}),
             201,
         )
-    except Exception as err:
-        return jsonify({"message": "unable to create order", "data": {}}), 409
+    except Exception:
+        if retries >= 5:
+            return (
+                jsonify({"message": "unable to create order", "data": {}}),
+                409,
+            )
+        db.session.rollback()
+        retries += 1
+        return post_order(customer_id=customer_id, retries=retries)
 
 
 def order_by_username(username):
     try:
         return Orders.query.filter(Orders.username == username).one()
-    except:
+    except Exception:
         return None
 
 
-async def get_disk_data(disk_id):
+def get_disk_data(disk_id):
     return Disks.query.filter(
         Disks.id == disk_id,
     ).first()
 
 
-async def get_orders_amount(disk_id):
-    return Orders.query.with_entities(func.sum(Orders.amount)).filter(Orders.disk_id == disk_id).one()[0]
+def get_orders_amount(disk_id):
+    return (
+        Orders.query.with_entities(func.sum(Orders.amount))
+        .filter(Orders.disk_id == disk_id)
+        .one()[0]
+    )

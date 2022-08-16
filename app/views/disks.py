@@ -100,5 +100,5 @@ def delete_disk(id):
 def disk_by_name(name):
     try:
         return Disks.query.filter(Disks.name == name).one()
-    except:
+    except Exception:
         return None

@@ -4,13 +4,10 @@ from marshmallow import Schema, fields
 
 
 class Orders(db.Model):
-    __table_args__ = (
-        db.UniqueConstraint('disk_id', 'disk_amount_left'),
-    )
+    __table_args__ = (db.UniqueConstraint("disk_id", "disk_amount_left"),)
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     disk_id = db.Column(db.Integer, db.ForeignKey("disks.id"), nullable=False)
-    customer_id = db.Column(db.Integer, db.ForeignKey(
-        "customers.id"), nullable=False)
+    customer_id = db.Column(db.Integer, db.ForeignKey("customers.id"), nullable=False)
     amount = db.Column(db.Integer, nullable=False)
     disk_amount_left = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.now())

@@ -12,6 +12,4 @@ def before_first_request():
     db.create_all()
 
 
-from .models import customers, disks, orders
-from .views import customers, helper, disks, orders
 from .routes import customers, disks, home, auth, orders

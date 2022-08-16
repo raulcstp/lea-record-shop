@@ -67,7 +67,7 @@ def post_customer():
         db.session.commit()
         result = customer_schema.dump(customer)
         return jsonify({"message": "successfully registered", "data": result}), 201
-    except Exception as err:
+    except Exception:
         return jsonify({"message": "unable to create", "data": {}}), 500
 
 
@@ -119,5 +119,5 @@ def delete_customer(id):
 def customer_by_username(username):
     try:
         return Customers.query.filter(Customers.username == username).one()
-    except:
+    except Exception:
         return None

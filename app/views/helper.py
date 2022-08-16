@@ -30,28 +30,6 @@ def token_required(f):
 
     return decorated
 
-def async_token_required(f):
-    @wraps(f)
-    async def decorated(*args, **kwargs):
-        token = request.headers.get("token")
-        if not token:
-            return jsonify({"message": "token is missing", "data": []}), 401
-        try:
-            data = jwt.decode(token, app.config["SECRET_KEY"])
-            current_user = customer_by_username(username=data["username"])
-            if not current_user.is_active:
-                return (
-                    jsonify({"message": "This user is inactive", "data": []}),
-                    401,
-                )
-        except Exception:
-            return (
-                jsonify({"message": "token is invalid or expired", "data": []}),
-                401,
-            )
-        return await f(current_user, *args, **kwargs)
-
-    return decorated
 
 def auth():
     auth = request.authorization
