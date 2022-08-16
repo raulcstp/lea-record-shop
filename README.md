@@ -57,7 +57,7 @@ Ao acessar a página basta escolher o número de usuários e a spawn rate dos me
 
 Esse projeto também está rodando na AWS, nele é possível realizar todas as operações citadas acima, a url é a seguinte:
 
-https://pqg5jyv6rl.execute-api.us-east-1.amazonaws.com/dev/v1
+https://z7gnv4re0c.execute-api.us-east-1.amazonaws.com/dev/v1
 
 ## 🧭 Documentação da API
 
